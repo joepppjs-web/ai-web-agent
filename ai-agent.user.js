@@ -205,7 +205,7 @@
             const response = await new Promise((resolve, reject) => {
                 GM_xmlhttpRequest({
                     method: 'POST',
-                    url: 'http://localhost:5000/analyze',
+                    url: '172.75.16.247/analyze',
                     headers: { 'Content-Type': 'application/json' },
                     data: JSON.stringify({ url: window.location.href, command }),
                     timeout: 45000,
