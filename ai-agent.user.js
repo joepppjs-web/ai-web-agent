@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Fireb AI Web Analyzer Galaxy Big
+// @name         Fireb AI Web Analyzer Galaxy Big Sidebar (Fixed)
 // @namespace    https://github.com/joepppjs-web/ai-web-agent
-// @version      5.1
-// @description  Bigger galaxy AI panel, bottom-right, single backend call
+// @version      5.3
+// @description  Big galaxy AI panel as right sidebar, single backend call, no duplicate UIs on SPAs/pages
 // @author       joepppjs-web
 // @match        *://*/*
 // @grant        GM_xmlhttpRequest
@@ -12,12 +12,16 @@
 (function() {
     'use strict';
 
+    // ----- PREVENT DUPLICATE UI -----
+    if (window.__firebAIInjected) return;
+    window.__firebAIInjected = true;
+
     // -------------- STYLES --------------
     GM_addStyle(`
         #ai-panel {
             position: fixed;
-            bottom: 40px;
-            right: 40px;
+            top: 60px;
+            right: 0;
             z-index: 999999;
             background:
                 radial-gradient(circle at 20% 20%, rgba(255,255,255,0.25) 0, transparent 40%),
@@ -25,34 +29,36 @@
                 radial-gradient(circle at 10% 80%, rgba(255,255,255,0.15) 0, transparent 40%),
                 linear-gradient(135deg, #020024 0%, #090979 35%, #4b0082 70%, #ff6ac1 100%);
             backdrop-filter: blur(20px);
-            border-radius: 24px;
+            border-radius: 24px 0 0 24px;
             box-shadow: 0 25px 50px rgba(0,0,0,0.7);
             padding: 0;
-            min-width: 520px;
-            max-width: 560px;
-            max-height: 80vh;
+            width: 520px;
+            max-width: 40vw;
+            height: calc(100vh - 80px);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
             pointer-events: auto;
         }
         #ai-panel.desktop {
-            min-width: 520px;
-            max-width: 560px;
+            width: 560px;
+            max-width: 42vw;
         }
         #ai-panel.mobile {
             left: 5px !important;
             right: 5px !important;
-            bottom: 10px !important;
-            min-width: auto !important;
-            max-width: none !important;
+            top: 10px !important;
+            height: auto !important;
+            max-height: 80vh !important;
+            width: auto !important;
+            border-radius: 16px !important;
         }
 
         .ai-header {
-            padding: 24px;
+            padding: 20px;
             color: white;
             text-align: center;
-            border-radius: 24px 24px 0 0;
-            background: rgba(0,0,0,0.25);
+            border-radius: 24px 0 0 0;
+            background: rgba(0,0,0,0.35);
             backdrop-filter: blur(15px);
             position: relative;
             cursor: move;
@@ -63,10 +69,10 @@
         .ai-subtitle { font-size: 14px; opacity: 0.9; margin: 0; }
 
         .ai-content {
-            padding: 24px;
+            padding: 18px;
             background: rgba(5,10,30,0.95);
-            border-radius: 0 0 24px 24px;
-            max-height: 72vh;
+            border-radius: 0 0 0 24px;
+            height: calc(100% - 64px);
             overflow-y: auto;
             backdrop-filter: blur(10px);
             pointer-events: auto;
@@ -75,21 +81,21 @@
 
         .preset-grid {
             display: grid;
-            grid-template-columns: repeat(2, minmax(160px, 1fr));
-            gap: 12px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 16px;
         }
         .preset-btn {
-            padding: 14px 12px;
+            padding: 12px 10px;
             background: rgba(15,23,42,0.9);
             border: 2px solid rgba(148,163,184,0.7);
-            border-radius: 14px;
-            font-size: 14px;
+            border-radius: 12px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.25s;
             text-align: center;
-            height: 56px;
+            height: 52px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -112,12 +118,12 @@
 
         .ai-input {
             width: 100%;
-            padding: 14px 16px;
+            padding: 12px 14px;
             border: 2px solid #1f2937;
-            border-radius: 14px;
-            font-size: 15px;
+            border-radius: 12px;
+            font-size: 14px;
             box-sizing: border-box;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             background: #020617;
             color: #e5e7eb;
             transition: all 0.2s;
@@ -132,12 +138,12 @@
 
         .ai-btn {
             width: 100%;
-            padding: 14px;
+            padding: 12px;
             background: linear-gradient(135deg, #22c55e, #16a34a);
             color: white;
             border: none;
-            border-radius: 14px;
-            font-size: 15px;
+            border-radius: 12px;
+            font-size: 14px;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.25s;
@@ -154,9 +160,9 @@
                 radial-gradient(circle at top left, rgba(96,165,250,0.25), transparent 55%),
                 radial-gradient(circle at bottom right, rgba(252,165,165,0.2), transparent 55%),
                 rgba(15,23,42,0.95);
-            border-radius: 16px;
-            padding: 20px;
-            font-size: 14px;
+            border-radius: 14px;
+            padding: 16px;
+            font-size: 13px;
             line-height: 1.7;
             white-space: pre-wrap;
             border-left: 4px solid #22c55e;
@@ -164,15 +170,15 @@
             display: none;
             pointer-events: auto;
             color: #e5e7eb;
-            margin-top: 14px;
+            margin-top: 12px;
         }
         .status {
-            padding: 10px 12px;
+            padding: 8px 10px;
             border-radius: 10px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             font-weight: 500;
             text-align: center;
-            font-size: 13px;
+            font-size: 12px;
             pointer-events: auto;
         }
         .status.success {
@@ -188,9 +194,9 @@
 
         .copy-btn {
             background: linear-gradient(135deg, #3b82f6, #6366f1);
-            font-size: 13px;
-            padding: 10px 16px;
-            margin-top: 12px;
+            font-size: 12px;
+            padding: 8px 12px;
+            margin-top: 10px;
             width: 100%;
             pointer-events: auto;
         }
@@ -199,18 +205,19 @@
             #ai-panel {
                 left: 5px !important;
                 right: 5px !important;
-                bottom: 10px !important;
-                min-width: auto !important;
-                max-width: none !important;
+                top: 10px !important;
+                width: auto !important;
+                height: auto !important;
+                max-height: 80vh !important;
+                border-radius: 16px !important;
+            }
+            .ai-content {
+                height: auto;
+                max-height: 70vh;
             }
             .preset-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
-        }
-        @media (max-width: 480px) {
-            .ai-header { padding: 18px; }
-            .ai-content { padding: 18px; }
-            .preset-btn { padding: 10px 8px; height: 52px; font-size: 13px; }
         }
     `);
 
@@ -350,7 +357,6 @@
             panel.style.left = (e.clientX - startX) + 'px';
             panel.style.top = (e.clientY - startY) + 'px';
             panel.style.right = 'auto';
-            panel.style.bottom = 'auto';
         }
     });
 
